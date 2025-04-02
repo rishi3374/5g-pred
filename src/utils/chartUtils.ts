@@ -31,3 +31,26 @@ export const calculatePercentage = (value: ValueType, total: ValueType): number 
   if (numTotal === 0) return 0;
   return (numValue / numTotal) * 100;
 };
+
+export const ensureNumber = (value: ValueType): number => {
+  if (typeof value === 'number') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    return parseFloat(value) || 0;
+  }
+  return 0;
+};
+
+export const formatDecimal = (value: ValueType, decimals: number = 1): string => {
+  const numValue = ensureNumber(value);
+  return numValue.toFixed(decimals);
+};
+
+export const getPercentChange = (current: ValueType, previous: ValueType): number => {
+  const currentVal = ensureNumber(current);
+  const previousVal = ensureNumber(previous);
+  
+  if (previousVal === 0) return 0;
+  return ((currentVal - previousVal) / previousVal) * 100;
+};

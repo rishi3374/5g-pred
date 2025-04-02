@@ -81,10 +81,20 @@
   background: linear-gradient(135deg, hsl(240, 60%, 50%), hsl(260, 60%, 60%));
 }
 
+.dark .gradient-bg {
+  background: linear-gradient(135deg, hsl(240, 50%, 30%), hsl(260, 50%, 40%));
+}
+
 .glass-card {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass-card {
+  background: rgba(30, 30, 40, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .feature-card {
@@ -94,4 +104,8 @@
 .feature-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.dark .feature-card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }

@@ -1,41 +1,95 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Radio, WifiIcon, BarChart3, Layers, Settings } from 'lucide-react';
+import { Link, useLocation } from "react-router-dom";
+import { BarChart3, Cog, Home, LineChart, Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+
+const LINKS = [
+  { name: "Dashboard", path: "/", icon: Home },
+  { name: "Model Comparison", path: "/model-comparison", icon: BarChart3 },
+  { name: "Features", path: "/features", icon: LineChart },
+  { name: "Settings", path: "/settings", icon: Cog },
+];
 
 const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  
+  const toggleMenu = () => setIsOpen(!isOpen);
+  const closeMenu = () => setIsOpen(false);
+
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-b border-gray-200 z-50">
-      <div className="container mx-auto px-4 flex items-center justify-between h-16">
-        <div className="flex items-center space-x-2">
-          <Radio className="h-6 w-6 text-primary" />
-          <span className="font-bold text-xl">5G Coverage Predictor</span>
-        </div>
-        
-        <div className="hidden md:flex space-x-8">
-          <NavLink to="/" icon={<WifiIcon className="h-4 w-4 mr-2" />} text="Dashboard" />
-          <NavLink to="/model-comparison" icon={<BarChart3 className="h-4 w-4 mr-2" />} text="Model Comparison" />
-          <NavLink to="/features" icon={<Layers className="h-4 w-4 mr-2" />} text="Features" />
-          <NavLink to="/settings" icon={<Settings className="h-4 w-4 mr-2" />} text="Settings" />
-        </div>
-        
-        <div className="md:hidden">
-          <button className="p-2 focus:outline-none">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+    <nav className="sticky top-0 bg-background border-b border-border z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <div className="flex-shrink-0 flex items-center">
+              <Link to="/" className="text-primary font-bold text-xl">
+                5G Coverage Predictor
+              </Link>
+            </div>
+          </div>
+          
+          <div className="hidden md:flex items-center space-x-4">
+            {LINKS.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={cn(
+                  "flex items-center px-3 py-2 rounded-md text-sm font-medium",
+                  location.pathname === link.path
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground/70 hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <link.icon className="mr-2 h-4 w-4" />
+                {link.name}
+              </Link>
+            ))}
+            <ThemeToggle />
+          </div>
+          
+          <div className="flex md:hidden items-center">
+            <ThemeToggle />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="ml-2"
+              onClick={toggleMenu}
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
+          </div>
         </div>
       </div>
+
+      {/* Mobile menu */}
+      {isOpen && (
+        <div className="md:hidden bg-background border-b border-border">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            {LINKS.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={cn(
+                  "flex items-center px-3 py-2 rounded-md text-base font-medium",
+                  location.pathname === link.path
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground/70 hover:bg-muted hover:text-foreground"
+                )}
+                onClick={closeMenu}
+              >
+                <link.icon className="mr-2 h-5 w-5" />
+                {link.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
-
-const NavLink = ({ to, icon, text }: { to: string; icon: React.ReactNode; text: string }) => (
-  <Link to={to} className="flex items-center text-gray-700 hover:text-primary transition-colors">
-    {icon}
-    <span>{text}</span>
-  </Link>
-);
 
 export default Navbar;
