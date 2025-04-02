@@ -50,6 +50,7 @@ export interface LocationData {
   longitude: number;
   accuracyMeters?: number;
   timestamp: number;
+  locationName?: string;
 }
 
 export interface FrequencyRange {

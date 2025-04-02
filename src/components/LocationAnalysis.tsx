@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, MapPin, Wifi } from 'lucide-react';
+import { Loader2, MapPin, Wifi, Building } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -37,9 +37,56 @@ const frequencyRanges: FrequencyRange[] = [
 const LocationAnalysis = () => {
   const [location, setLocation] = useState<LocationData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedFrequencyRange, setSelectedFrequencyRange] = useState<FrequencyRange | null>(null);
   const { toast } = useToast();
+
+  const fetchLocationName = async (lat: number, lon: number) => {
+    setGeoLoading(true);
+    try {
+      const response = await fetch(
+        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`
+      );
+      const data = await response.json();
+      
+      // Construct a readable location name from the response
+      const locality = data.locality || '';
+      const city = data.city || '';
+      const principalSubdivision = data.principalSubdivision || '';
+      const countryName = data.countryName || '';
+      
+      // Create a formatted location name
+      let locationName = '';
+      if (locality && locality !== city) {
+        locationName += locality + ', ';
+      }
+      if (city) {
+        locationName += city + ', ';
+      }
+      if (principalSubdivision) {
+        locationName += principalSubdivision + ', ';
+      }
+      if (countryName) {
+        locationName += countryName;
+      }
+      
+      // If we couldn't get a proper name, use coordinates
+      if (!locationName) {
+        locationName = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+      }
+      
+      // Update the location with the name
+      setLocation(prevLocation => 
+        prevLocation ? { ...prevLocation, locationName } : null
+      );
+      
+      setGeoLoading(false);
+    } catch (error) {
+      console.error('Error fetching location name:', error);
+      setGeoLoading(false);
+    }
+  };
 
   const getLocation = () => {
     setLoading(true);
@@ -53,12 +100,17 @@ const LocationAnalysis = () => {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLocation({
+        const newLocation = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
           accuracyMeters: position.coords.accuracy,
           timestamp: position.timestamp
-        });
+        };
+        
+        setLocation(newLocation);
+        
+        // Fetch the location name
+        fetchLocationName(newLocation.latitude, newLocation.longitude);
         
         // For demo purposes, randomly select a frequency range
         // In a real app, this would be determined by actual network data for the location
@@ -131,7 +183,23 @@ const LocationAnalysis = () => {
           </Button>
           
           {location && (
-            <div className="space-y-3 bg-gray-50 p-3 rounded-md">
+            <div className="space-y-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
+              {location.locationName && (
+                <div className="flex items-center justify-between border-b pb-2 mb-2">
+                  <span className="text-sm font-medium flex items-center gap-1">
+                    <Building className="h-4 w-4" />
+                    Location:
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {geoLoading ? (
+                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                    ) : null}
+                    <span className="text-sm font-semibold">
+                      {location.locationName}
+                    </span>
+                  </div>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Coordinates:</span>
                 <span className="text-sm font-mono">
