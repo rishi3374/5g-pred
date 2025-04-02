@@ -30,7 +30,9 @@ const AlgorithmComparisonChart = () => {
               <XAxis dataKey="name" />
               <YAxis domain={[0, 100]} label={{ value: '%', angle: -90, position: 'insideLeft' }} />
               <Tooltip 
-                formatter={(value) => [`${value.toFixed(1)}%`]}
+                formatter={(value) => {
+                  return typeof value === 'number' ? [`${value.toFixed(1)}%`] : [value];
+                }}
                 labelFormatter={(value) => `Algorithm: ${value}`}
               />
               <Legend />

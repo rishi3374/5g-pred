@@ -42,9 +42,9 @@ const TrainingTimeChart = () => {
                 label={{ value: 'Accuracy (%)', angle: -90, position: 'insideRight' }} 
               />
               <Tooltip formatter={(value, name) => {
-                if (name === 'accuracy') return [`${value.toFixed(1)}%`, 'Accuracy'];
-                if (name === 'trainingTime') return [`${value.toFixed(1)}s`, 'Training Time'];
-                if (name === 'inferenceTime') return [`${value.toFixed(1)}s`, 'Inference Time'];
+                if (name === 'accuracy' && typeof value === 'number') return [`${value.toFixed(1)}%`, 'Accuracy'];
+                if (name === 'trainingTime' && typeof value === 'number') return [`${value.toFixed(1)}s`, 'Training Time'];
+                if (name === 'inferenceTime' && typeof value === 'number') return [`${value.toFixed(1)}s`, 'Inference Time'];
                 return [value, name];
               }} />
               <Legend />

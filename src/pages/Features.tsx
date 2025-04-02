@@ -132,7 +132,9 @@ const Features = () => {
                       label={{ value: 'Importance (%)', position: 'insideBottom', offset: -5 }} 
                     />
                     <YAxis type="category" dataKey="name" width={110} />
-                    <Tooltip formatter={(value) => [`${value.toFixed(1)}%`]} />
+                    <Tooltip formatter={(value) => {
+                      return typeof value === 'number' ? [`${value.toFixed(1)}%`] : [value];
+                    }} />
                     <Bar 
                       dataKey="importance" 
                       fill="#6B46C1" 
@@ -162,13 +164,21 @@ const Features = () => {
                       outerRadius={110}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                      label={({ name, percent }) => {
+                        return typeof percent === 'number' 
+                          ? `${name}: ${(percent * 100).toFixed(1)}%` 
+                          : `${name}: ${percent}%`;
+                      }}
                     >
                       {pieChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => [`${(value * 100).toFixed(1)}%`, 'Importance']} />
+                    <Tooltip formatter={(value) => {
+                      return typeof value === 'number' 
+                        ? [`${(value * 100).toFixed(1)}%`, 'Importance'] 
+                        : [value, 'Importance'];
+                    }} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>

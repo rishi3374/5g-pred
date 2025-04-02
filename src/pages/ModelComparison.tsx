@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Tabs, 
@@ -143,7 +142,9 @@ const ModelComparison = () => {
                         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                         <XAxis dataKey="name" />
                         <YAxis domain={[0, 100]} label={{ value: '%', angle: -90, position: 'insideLeft' }} />
-                        <Tooltip formatter={(value) => [`${value.toFixed(1)}%`]} />
+                        <Tooltip formatter={(value) => {
+                          return typeof value === 'number' ? [`${value.toFixed(1)}%`] : [value];
+                        }} />
                         <Legend />
                         <Bar dataKey="accuracy" name="Accuracy" fill="#4C51BF" />
                       </BarChart>
@@ -163,7 +164,9 @@ const ModelComparison = () => {
                         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                         <XAxis dataKey="name" />
                         <YAxis label={{ value: 'seconds', angle: -90, position: 'insideLeft' }} />
-                        <Tooltip formatter={(value) => [`${value.toFixed(1)}s`]} />
+                        <Tooltip formatter={(value) => {
+                          return typeof value === 'number' ? [`${value.toFixed(1)}s`] : [value];
+                        }} />
                         <Legend />
                         <Bar dataKey="trainingTime" name="Training Time" fill="#805AD5" />
                       </BarChart>
@@ -187,7 +190,9 @@ const ModelComparison = () => {
                         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                         <XAxis dataKey="name" />
                         <YAxis domain={[70, 100]} label={{ value: '%', angle: -90, position: 'insideLeft' }} />
-                        <Tooltip formatter={(value) => [`${value.toFixed(1)}%`]} />
+                        <Tooltip formatter={(value) => {
+                          return typeof value === 'number' ? [`${value.toFixed(1)}%`] : [value];
+                        }} />
                         <Legend />
                         <Line type="monotone" dataKey="precision" name="Precision" stroke="#805AD5" strokeWidth={2} dot={{ r: 6 }} />
                         <Line type="monotone" dataKey="recall" name="Recall" stroke="#6B46C1" strokeWidth={2} dot={{ r: 6 }} />
@@ -208,7 +213,9 @@ const ModelComparison = () => {
                         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                         <XAxis dataKey="name" />
                         <YAxis domain={[70, 100]} label={{ value: '%', angle: -90, position: 'insideLeft' }} />
-                        <Tooltip formatter={(value) => [`${value.toFixed(1)}%`]} />
+                        <Tooltip formatter={(value) => {
+                          return typeof value === 'number' ? [`${value.toFixed(1)}%`] : [value];
+                        }} />
                         <Legend />
                         <Bar dataKey="f1" name="F1 Score" fill="#9F7AEA" />
                       </BarChart>
@@ -228,13 +235,17 @@ const ModelComparison = () => {
                     <RadarChart outerRadius={150} data={performanceData}>
                       <PolarGrid />
                       <PolarAngleAxis dataKey="name" />
-                      <PolarRadiusAxis angle={30} domain={[0, 1]} tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
+                      <PolarRadiusAxis angle={30} domain={[0, 1]} tickFormatter={(value) => {
+                        return typeof value === 'number' ? `${(value * 100).toFixed(0)}%` : value;
+                      }} />
                       <Radar name="Accuracy" dataKey="accuracy" stroke="#4C51BF" fill="#4C51BF" fillOpacity={0.6} />
                       <Radar name="Precision" dataKey="precision" stroke="#805AD5" fill="#805AD5" fillOpacity={0.6} />
                       <Radar name="Recall" dataKey="recall" stroke="#6B46C1" fill="#6B46C1" fillOpacity={0.6} />
                       <Radar name="F1 Score" dataKey="f1Score" stroke="#9F7AEA" fill="#9F7AEA" fillOpacity={0.6} />
                       <Legend />
-                      <Tooltip formatter={(value) => [`${(value * 100).toFixed(1)}%`]} />
+                      <Tooltip formatter={(value) => {
+                        return typeof value === 'number' ? [`${(value * 100).toFixed(1)}%`] : [value];
+                      }} />
                     </RadarChart>
                   </ResponsiveContainer>
                 </div>
@@ -259,13 +270,19 @@ const ModelComparison = () => {
                           cx="50%"
                           cy="50%"
                           outerRadius={120}
-                          label={({ name, accuracy }) => `${name}: ${(accuracy * 100).toFixed(1)}%`}
+                          label={({ name, accuracy }) => {
+                            return typeof accuracy === 'number' 
+                              ? `${name}: ${(accuracy * 100).toFixed(1)}%` 
+                              : `${name}: ${accuracy}%`;
+                          }}
                         >
                           {algorithms.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value) => [`${(value * 100).toFixed(1)}%`, 'Accuracy']} />
+                        <Tooltip formatter={(value) => {
+                          return typeof value === 'number' ? [`${(value * 100).toFixed(1)}%`, 'Accuracy'] : [value, 'Accuracy'];
+                        }} />
                         <Legend />
                       </PieChart>
                     </ResponsiveContainer>
@@ -354,7 +371,9 @@ const ModelComparison = () => {
                       <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                       <XAxis dataKey="name" />
                       <YAxis label={{ value: 'Time (seconds)', angle: -90, position: 'insideLeft' }} />
-                      <Tooltip formatter={(value) => [`${value.toFixed(1)}s`]} />
+                      <Tooltip formatter={(value) => {
+                        return typeof value === 'number' ? [`${value.toFixed(1)}s`] : [value];
+                      }} />
                       <Legend />
                       <Bar dataKey="trainingTime" name="Training Time" fill="#805AD5" />
                       <Bar dataKey="inferenceTime" name="Inference Time" fill="#D6BCFA" />
@@ -430,7 +449,9 @@ const ModelComparison = () => {
                         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                         <XAxis dataKey="name" />
                         <YAxis label={{ value: 'Accuracy % per second', angle: -90, position: 'insideLeft' }} />
-                        <Tooltip formatter={(value) => [`${value.toFixed(2)}`]} />
+                        <Tooltip formatter={(value) => {
+                          return typeof value === 'number' ? [`${value.toFixed(2)}`] : [value];
+                        }} />
                         <Bar 
                           dataKey="efficiencyRatio" 
                           name="Efficiency Ratio" 

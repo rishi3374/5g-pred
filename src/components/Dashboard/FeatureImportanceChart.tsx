@@ -30,7 +30,9 @@ const FeatureImportanceChart = () => {
               <XAxis type="number" domain={[0, 30]} label={{ value: 'Importance (%)', position: 'insideBottom', offset: -5 }} />
               <YAxis type="category" dataKey="name" width={110} />
               <Tooltip 
-                formatter={(value) => [`${value.toFixed(1)}%`]}
+                formatter={(value) => {
+                  return typeof value === 'number' ? [`${value.toFixed(1)}%`] : [value];
+                }}
                 labelFormatter={(name) => `Feature: ${name}`}
               />
               <Bar 
