@@ -26,8 +26,9 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="text-primary font-bold text-xl">
-                5G Coverage Predictor
+              <Link to="/" className="text-primary font-bold text-xl flex items-center">
+                <span className="bg-primary text-white px-2 py-1 rounded-md mr-2">5G</span>
+                Coverage Predictor
               </Link>
             </div>
           </div>

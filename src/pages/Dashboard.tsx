@@ -11,6 +11,8 @@ import {
 import LocationAnalysis from '@/components/LocationAnalysis';
 import { performanceMetrics, algorithms } from '@/data/algorithms';
 import { Algorithm } from '@/types';
+import { Button } from '@/components/ui/button';
+import { ExternalLink } from 'lucide-react';
 
 const Dashboard = () => {
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<Algorithm>(algorithms[1]); // Default to XGBoost
@@ -18,13 +20,21 @@ const Dashboard = () => {
   return (
     <div className="pt-20 pb-12 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-1">
-            5G Coverage Prediction & Feature Analysis
-          </h1>
-          <p className="text-gray-600 max-w-3xl">
-            Analyze prediction accuracy and identify dominant feature parameters affecting 5G network coverage using various machine learning algorithms.
-          </p>
+        <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-1">
+              5G Coverage Prediction & Feature Analysis
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 max-w-3xl">
+              Analyze prediction accuracy and identify dominant feature parameters affecting 5G network coverage using various machine learning algorithms.
+            </p>
+          </div>
+          <Button className="flex items-center gap-2" size="lg">
+            <ExternalLink className="h-4 w-4" />
+            <a href="/model-comparison" target="_blank" rel="noopener noreferrer">
+              View 5GPredictor Output
+            </a>
+          </Button>
         </div>
         
         {/* Top Performance Metrics */}
