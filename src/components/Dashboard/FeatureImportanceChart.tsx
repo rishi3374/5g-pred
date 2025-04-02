@@ -31,7 +31,10 @@ const FeatureImportanceChart = () => {
               <YAxis type="category" dataKey="name" width={110} />
               <Tooltip 
                 formatter={(value) => {
-                  return typeof value === 'number' ? [`${value.toFixed(1)}%`] : [value];
+                  if (typeof value === 'number') {
+                    return [`${value.toFixed(1)}%`];
+                  }
+                  return [value];
                 }}
                 labelFormatter={(name) => `Feature: ${name}`}
               />

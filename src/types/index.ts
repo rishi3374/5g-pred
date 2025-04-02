@@ -44,3 +44,18 @@ export interface ComparisonResult {
   trainingTime: number;
   inferenceTime: number;
 }
+
+export interface LocationData {
+  latitude: number;
+  longitude: number;
+  accuracyMeters?: number;
+  timestamp: number;
+}
+
+export interface FrequencyRange {
+  min: number;
+  max: number;
+  band: string;
+  accuracy: number;
+  description: string;
+}
