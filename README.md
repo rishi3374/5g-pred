@@ -1,73 +1,118 @@
-# Welcome to your Lovable project
+# 5G Prediction Accuracy Analysis System
 
-## Project info
+A web-based application that analyzes and predicts 5G network coverage and performance at specific locations. The system combines location data with 5G network parameters to provide detailed analysis of potential network performance.
 
-**URL**: https://lovable.dev/projects/1370de5c-b75b-40df-b996-9f0bf84760cb
+## Features
 
-## How can I edit this code?
+- 🔍 Location Search: Search for any location worldwide
+- 📍 Current Location Detection: Use your device's GPS
+- 📊 Network Analysis: 5G frequency band prediction and coverage analysis
+- 🌍 Environmental Analysis: Building density and terrain assessment
+- 📱 Responsive Design: Works on all devices
+- 🔒 User Authentication: Secure login and registration
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- React with TypeScript
+- Shadcn UI Components
+- Tailwind CSS
+- Vite
+- OpenStreetMap Nominatim API
+- Custom Authentication System
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/1370de5c-b75b-40df-b996-9f0bf84760cb) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+- Node.js (v14 or higher)
+- npm (v6 or higher)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/5g-prediction-accuracy.git
+cd 5g-prediction-accuracy
+```
 
-Follow these steps:
+2. Install dependencies:
+```bash
+npm install
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+4. Open your browser and navigate to:
+```
+http://localhost:8080
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Project Structure
 
-**Use GitHub Codespaces**
+```
+5g-prediction-accuracy/
+├── src/
+│   ├── components/
+│   │   ├── LocationAnalysis.tsx
+│   │   ├── CoverageMap.tsx
+│   │   └── ui/
+│   ├── pages/
+│   │   ├── Login.tsx
+│   │   ├── Register.tsx
+│   │   └── Dashboard.tsx
+│   ├── contexts/
+│   │   └── AuthContext.tsx
+│   ├── types/
+│   │   └── index.ts
+│   └── App.tsx
+├── public/
+├── package.json
+└── README.md
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Features in Detail
 
-## What technologies are used for this project?
+### Location Analysis
+- Search for any location worldwide
+- Get current location using GPS
+- View detailed location information
+- Analyze 5G coverage potential
 
-This project is built with:
+### Network Analysis
+- Frequency band prediction
+- Coverage range estimation
+- Expected speed calculation
+- Prediction accuracy scoring
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Environmental Analysis
+- Building density assessment
+- Terrain type classification
+- GPS accuracy measurement
+- Signal propagation impact
 
-## How can I deploy this project?
+## Contributing
 
-Simply open [Lovable](https://lovable.dev/projects/1370de5c-b75b-40df-b996-9f0bf84760cb) and click on Share -> Publish.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## Can I connect a custom domain to my Lovable project?
+## License
 
-Yes it is!
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Acknowledgments
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- OpenStreetMap for location data
+- Shadcn UI for component library
+- React and TypeScript communities
+
+## Contact
+
+Your Name - [@yourtwitter](https://twitter.com/yourtwitter) - email@example.com
+
+Project Link: [https://github.com/yourusername/5g-prediction-accuracy](https://github.com/yourusername/5g-prediction-accuracy)

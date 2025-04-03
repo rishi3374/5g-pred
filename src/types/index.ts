@@ -1,13 +1,10 @@
-
 export interface Algorithm {
   id: string;
   name: string;
-  accuracy: number;
-  precision: number;
-  recall: number;
-  f1Score: number;
   description: string;
-  color: string;
+  accuracy: number;
+  trainingTime: number;
+  parameters: Record<string, any>;
 }
 
 export interface Feature {
@@ -45,12 +42,22 @@ export interface ComparisonResult {
   inferenceTime: number;
 }
 
+export interface LocationDetails {
+  locality: string;
+  city: string;
+  district: string;
+  country: string;
+  postcode: string;
+  latitude: number;
+  longitude: number;
+}
+
 export interface LocationData {
   latitude: number;
   longitude: number;
-  accuracyMeters?: number;
-  timestamp: number;
-  locationName?: string;
+  accuracy: number;
+  locationName: string;
+  locationDetails: LocationDetails | null;
 }
 
 export interface FrequencyRange {
@@ -59,4 +66,6 @@ export interface FrequencyRange {
   band: string;
   accuracy: number;
   description: string;
+  range: string;
+  speed: string;
 }

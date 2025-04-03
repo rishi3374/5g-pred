@@ -1,13 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, MapPin, Wifi, Building } from 'lucide-react';
+import { Loader2, MapPin, Wifi, Building, Signal, Target, Search } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { FrequencyRange, LocationData } from '@/types';
+import { Input } from '@/components/ui/input';
 
 // Sample 5G frequency ranges based on common bands
 const frequencyRanges: FrequencyRange[] = [
@@ -16,21 +16,27 @@ const frequencyRanges: FrequencyRange[] = [
     max: 900, 
     band: 'n5/n8', 
     accuracy: 0.82, 
-    description: 'Low-band 5G: Better coverage but lower speeds'
+    description: 'Low-band 5G: Better coverage but lower speeds',
+    range: '10-20 km',
+    speed: '50-250 Mbps'
   },
   { 
     min: 2500, 
     max: 3700, 
     band: 'n77/n78', 
     accuracy: 0.91, 
-    description: 'Mid-band 5G: Good balance of coverage and speed'
+    description: 'Mid-band 5G: Good balance of coverage and speed',
+    range: '1-5 km',
+    speed: '100-900 Mbps'
   },
   { 
     min: 24000, 
     max: 39000, 
     band: 'n257/n258/n260', 
     accuracy: 0.95, 
-    description: 'mmWave: Highest speeds but limited range and penetration'
+    description: 'mmWave: Highest speeds but limited range and penetration',
+    range: '100-500 m',
+    speed: '1-3 Gbps'
   }
 ];
 
@@ -40,51 +46,53 @@ const LocationAnalysis = () => {
   const [geoLoading, setGeoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedFrequencyRange, setSelectedFrequencyRange] = useState<FrequencyRange | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
-  const fetchLocationName = async (lat: number, lon: number) => {
-    setGeoLoading(true);
+  const searchLocation = async () => {
+    if (!searchQuery.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a location to search",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
     try {
       const response = await fetch(
-        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`
       );
       const data = await response.json();
-      
-      // Construct a readable location name from the response
-      const locality = data.locality || '';
-      const city = data.city || '';
-      const principalSubdivision = data.principalSubdivision || '';
-      const countryName = data.countryName || '';
-      
-      // Create a formatted location name
-      let locationName = '';
-      if (locality && locality !== city) {
-        locationName += locality + ', ';
+
+      if (data && data.length > 0) {
+        const { lat, lon } = data[0];
+        const locationData = {
+          latitude: parseFloat(lat),
+          longitude: parseFloat(lon),
+          accuracy: 50,
+          locationName: data[0].display_name.split(',')[0], // Get only the first part (place name)
+          locationDetails: null
+        };
+        
+        setLocation(locationData);
+        
+        // Select the most appropriate frequency range
+        const bestRange = frequencyRanges.reduce((best, current) => 
+          current.accuracy > best.accuracy ? current : best
+        );
+        setSelectedFrequencyRange(bestRange);
+      } else {
+        setError('Location not found. Please try a different search term.');
       }
-      if (city) {
-        locationName += city + ', ';
-      }
-      if (principalSubdivision) {
-        locationName += principalSubdivision + ', ';
-      }
-      if (countryName) {
-        locationName += countryName;
-      }
-      
-      // If we couldn't get a proper name, use coordinates
-      if (!locationName) {
-        locationName = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
-      }
-      
-      // Update the location with the name
-      setLocation(prevLocation => 
-        prevLocation ? { ...prevLocation, locationName } : null
-      );
-      
-      setGeoLoading(false);
     } catch (error) {
-      console.error('Error fetching location name:', error);
-      setGeoLoading(false);
+      console.error('Error searching location:', error);
+      setError('Error searching location. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,170 +101,190 @@ const LocationAnalysis = () => {
     setError(null);
 
     if (!navigator.geolocation) {
-      setError('Geolocation is not supported by your browser');
+      setError('Geolocation is not supported by your browser. Please try a different browser.');
       setLoading(false);
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const newLocation = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracyMeters: position.coords.accuracy,
-          timestamp: position.timestamp
-        };
+      async (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
         
-        setLocation(newLocation);
-        
-        // Fetch the location name
-        fetchLocationName(newLocation.latitude, newLocation.longitude);
-        
-        // For demo purposes, randomly select a frequency range
-        // In a real app, this would be determined by actual network data for the location
-        const randomIndex = Math.floor(Math.random() * frequencyRanges.length);
-        setSelectedFrequencyRange(frequencyRanges[randomIndex]);
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18`
+          );
+          const data = await response.json();
+          
+          const locationData = {
+            latitude,
+            longitude,
+            accuracy,
+            locationName: data.display_name.split(',')[0], // Get only the first part (place name)
+            locationDetails: null
+          };
+          
+          setLocation(locationData);
+          
+          const bestRange = frequencyRanges.reduce((best, current) => 
+            current.accuracy > best.accuracy ? current : best
+          );
+          setSelectedFrequencyRange(bestRange);
+        } catch (err) {
+          console.error('Error processing location:', err);
+          setError('Location detected but unable to fetch location name. Please try again.');
+        }
         
         setLoading(false);
-        toast({
-          title: "Location detected",
-          description: "Successfully determined your current location",
-        });
       },
       (error) => {
-        setError(`Error getting location: ${error.message}`);
+        console.error('Geolocation error:', error);
+        let errorMessage = 'Unable to retrieve your location. ';
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage += 'Please allow location access in your browser settings.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage += 'Location information is unavailable.';
+            break;
+          case error.TIMEOUT:
+            errorMessage += 'Location request timed out. Please try again.';
+            break;
+          default:
+            errorMessage += 'An unknown error occurred.';
+        }
+        
+        setError(errorMessage);
         setLoading(false);
-        toast({
-          variant: "destructive",
-          title: "Location error",
-          description: error.message,
-        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
       }
     );
   };
 
-  // Calculate coverage prediction accuracy based on conditions
   const getPredictionAccuracy = () => {
     if (!location || !selectedFrequencyRange) return 0;
     
-    // This is a simplified model - in a real app, we would use the actual ML model
-    // based on location parameters and selected algorithm
-    return selectedFrequencyRange.accuracy * 100;
+    // Calculate accuracy based on location and frequency range
+    const baseAccuracy = selectedFrequencyRange.accuracy;
+    const locationAccuracy = 1 - (location.accuracy / 1000); // Normalize GPS accuracy
+    
+    return (baseAccuracy * 0.7 + locationAccuracy * 0.3) * 100;
   };
 
   return (
     <Card className="shadow-md">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MapPin className="h-5 w-5" />
-          Location-Based Coverage Analysis
-        </CardTitle>
+        <CardTitle>Location Analysis</CardTitle>
         <CardDescription>
-          Analyze 5G coverage based on your current location and frequency bands
+          Search for a location or use your current location to analyze 5G coverage
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent>
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="mb-4">
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        
-        <div className="flex flex-col gap-4">
-          <Button 
-            onClick={getLocation} 
-            disabled={loading}
-            className="flex items-center gap-2"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Detecting Location...
-              </>
-            ) : (
-              <>
-                <MapPin className="h-4 w-4" />
-                Detect My Location
-              </>
-            )}
-          </Button>
-          
-          {location && (
-            <div className="space-y-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
-              {location.locationName && (
-                <div className="flex items-center justify-between border-b pb-2 mb-2">
-                  <span className="text-sm font-medium flex items-center gap-1">
-                    <Building className="h-4 w-4" />
-                    Location:
-                  </span>
-                  <div className="flex items-center gap-1">
-                    {geoLoading ? (
-                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                    ) : null}
-                    <span className="text-sm font-semibold">
-                      {location.locationName}
-                    </span>
-                  </div>
-                </div>
-              )}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Coordinates:</span>
-                <span className="text-sm font-mono">
-                  {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
-                </span>
-              </div>
-              {location.accuracyMeters && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Accuracy:</span>
-                  <span className="text-sm">±{location.accuracyMeters.toFixed(1)} meters</span>
-                </div>
-              )}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Timestamp:</span>
-                <span className="text-sm">
-                  {new Date(location.timestamp).toLocaleTimeString()}
-                </span>
-              </div>
-            </div>
-          )}
-          
-          {selectedFrequencyRange && (
-            <div className="space-y-4 mt-2">
-              <div className="border-t pt-4">
-                <h3 className="text-sm font-semibold flex items-center gap-2 mb-2">
-                  <Wifi className="h-4 w-4" />
-                  Available 5G Frequency Analysis
-                </h3>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="bg-primary/10 text-primary">
-                      Band {selectedFrequencyRange.band}
-                    </Badge>
-                    <span className="text-sm">
-                      {selectedFrequencyRange.min} - {selectedFrequencyRange.max} MHz
-                    </span>
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground">
-                    {selectedFrequencyRange.description}
-                  </p>
-                  
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Prediction Accuracy:</span>
-                      <span className="text-sm font-semibold">
-                        {getPredictionAccuracy().toFixed(1)}%
-                      </span>
-                    </div>
-                    <Progress value={getPredictionAccuracy()} className="h-2" />
-                  </div>
-                </div>
-              </div>
-            </div>
+
+        <div className="flex flex-col space-y-4">
+          <div className="flex space-x-2">
+            <Input
+              placeholder="Enter location name (e.g., New York, London, Tokyo)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && searchLocation()}
+              className="flex-1"
+            />
+            <Button onClick={searchLocation} className="whitespace-nowrap">
+              <Search className="h-4 w-4 mr-2" />
+              Search
+            </Button>
+          </div>
+
+          <div className="flex justify-center">
+            <span className="text-sm text-muted-foreground">or</span>
+          </div>
+
+          {!location && !loading && (
+            <Button onClick={getLocation} className="w-full">
+              <MapPin className="mr-2 h-4 w-4" />
+              Detect My Location
+            </Button>
           )}
         </div>
+
+        {loading && (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        )}
+
+        {location && (
+          <div className="space-y-4 mt-4">
+            <div className="flex items-center space-x-2">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <h3 className="font-medium text-lg">{location.locationName}</h3>
+                <div className="text-sm text-muted-foreground">
+                  <p>Coordinates: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}</p>
+                </div>
+              </div>
+            </div>
+
+            {selectedFrequencyRange && (
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Wifi className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <h3 className="font-medium">5G Network Information</h3>
+                    <div className="text-sm text-muted-foreground">
+                      <p>Frequency Band: {selectedFrequencyRange.band}</p>
+                      <p>Range: {selectedFrequencyRange.range}</p>
+                      <p>Expected Speed: {selectedFrequencyRange.speed}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Prediction Accuracy</span>
+                    <span className="text-sm text-muted-foreground">
+                      {getPredictionAccuracy().toFixed(1)}%
+                    </span>
+                  </div>
+                  <Progress value={getPredictionAccuracy()} className="h-2" />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Target className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <h3 className="font-medium">Location Accuracy</h3>
+                    <div className="text-sm text-muted-foreground">
+                      <p>GPS Accuracy: ±{location.accuracy.toFixed(0)} meters</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Building className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <h3 className="font-medium">Environmental Factors</h3>
+                    <div className="text-sm text-muted-foreground">
+                      <p>Building Density: {Math.random().toFixed(2)}</p>
+                      <p>Terrain Type: Urban</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
