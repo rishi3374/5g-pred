@@ -15,6 +15,7 @@ import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
+import AlgorithmDetails from './pages/AlgorithmDetails';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -63,6 +64,7 @@ const App = () => {
                       </ProtectedRoute>
                     }
                   />
+                  <Route path="/algorithms" element={<AlgorithmDetails />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <Toaster />

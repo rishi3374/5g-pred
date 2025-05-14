@@ -1,9 +1,8 @@
-
 import PerformanceCard from './PerformanceCard';
 import AlgorithmComparisonChart from './AlgorithmComparisonChart';
 import FeatureImportanceChart from './FeatureImportanceChart';
 import CoverageMap from './CoverageMap';
-import TrainingTimeChart from './TrainingTimeChart';
+import AlgorithmsOverview from './AlgorithmsOverview';
 import AlgorithmCard from './AlgorithmCard';
 
 export {
@@ -11,6 +10,6 @@ export {
   AlgorithmComparisonChart,
   FeatureImportanceChart,
   CoverageMap,
-  TrainingTimeChart,
+  AlgorithmsOverview,
   AlgorithmCard
 };

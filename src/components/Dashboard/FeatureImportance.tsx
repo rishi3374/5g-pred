@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { LocationData } from '@/types';
 
-interface FeatureImportanceChartProps {
+interface FeatureImportanceProps {
   selectedLocation: LocationData | null;
 }
 
@@ -15,7 +15,7 @@ interface FeatureData {
   description: string;
 }
 
-const FeatureImportanceChart = ({ selectedLocation }: FeatureImportanceChartProps) => {
+const FeatureImportance = ({ selectedLocation }: FeatureImportanceProps) => {
   const [data, setData] = useState<FeatureData[]>([]);
   const [selectedAlgorithm, setSelectedAlgorithm] = useState('xgboost');
 
@@ -160,4 +160,4 @@ const FeatureImportanceChart = ({ selectedLocation }: FeatureImportanceChartProp
   );
 };
 
-export default FeatureImportanceChart;
+export default FeatureImportance; 

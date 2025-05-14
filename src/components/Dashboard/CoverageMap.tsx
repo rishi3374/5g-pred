@@ -1,76 +1,106 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { generateSampleData } from '@/data/algorithms';
-import { ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { Badge } from '@/components/ui/badge';
+import { LocationData } from '@/types';
 
-const CoverageMap = () => {
-  const [data, setData] = useState(generateSampleData(100));
+interface CoverageMapProps {
+  selectedLocation: LocationData | null;
+}
+
+const CoverageMap = ({ selectedLocation }: CoverageMapProps) => {
+  const [data, setData] = useState<any[]>([]);
   const [selectedAlgorithm, setSelectedAlgorithm] = useState('xgboost');
-  
-  const algorithms = [
-    { id: 'xgboost', name: 'XGBoost' },
-    { id: 'random-forest', name: 'Random Forest' },
-    { id: 'neural-network', name: 'Neural Network' },
-    { id: 'svm', name: 'Support Vector Machine' },
-    { id: 'logistic-regression', name: 'Logistic Regression' }
-  ];
-  
-  // Regenerate data when algorithm changes to simulate different predictions
-  useEffect(() => {
-    setData(generateSampleData(100));
-  }, [selectedAlgorithm]);
 
-  // Convert scatter data to grid data
-  const createGridData = () => {
-    const gridSize = 20;
-    const gridData = [];
-    
-    // Initialize grid
-    for (let x = 0; x < gridSize; x++) {
-      for (let y = 0; y < gridSize; y++) {
-        gridData.push({
-          x,
-          y,
-          value: 0,
-          count: 0,
-          actualCoverage: false,
-          predictedCoverage: false
-        });
-      }
-    }
-    
-    // Aggregate data points into grid cells
-    data.forEach(point => {
-      const x = Math.floor((point.x / 1000) * gridSize);
-      const y = Math.floor((point.y / 1000) * gridSize);
-      const index = y * gridSize + x;
+  useEffect(() => {
+    if (!selectedLocation) return;
+
+    // Generate sample data points around the selected location
+    const generateData = () => {
+      const dataPoints = [];
+      const baseLat = selectedLocation.latitude;
+      const baseLng = selectedLocation.longitude;
       
-      if (index >= 0 && index < gridData.length) {
-        gridData[index].value += point.signalStrength;
-        gridData[index].count += 1;
-        gridData[index].actualCoverage = point.actualCoverage;
-        gridData[index].predictedCoverage = point.predictedCoverage;
+      // Generate villages in concentric circles around the selected location
+      const distances = [1, 2, 3, 4, 5]; // km
+      const villagesPerRing = [4, 8, 12, 16, 20]; // number of villages in each ring
+      
+      distances.forEach((distance, ringIndex) => {
+        const numVillages = villagesPerRing[ringIndex];
+        for (let i = 0; i < numVillages; i++) {
+          const angle = (i / numVillages) * 2 * Math.PI;
+          const lat = baseLat + (distance * Math.cos(angle)) / 111; // 111 km per degree
+          const lng = baseLng + (distance * Math.sin(angle)) / (111 * Math.cos(baseLat * Math.PI / 180));
+          
+          const actualCoverage = Math.random() > 0.3;
+          const predictedCoverage = Math.random() > 0.3;
+          
+          dataPoints.push({
+            latitude: lat,
+            longitude: lng,
+            distance: distance,
+            villageName: `Village ${dataPoints.length + 1}`,
+            actualCoverage,
+            predictedCoverage,
+            isCorrect: actualCoverage === predictedCoverage
+          });
+        }
+      });
+      
+      return dataPoints;
+    };
+
+    const dataPoints = generateData();
+    setData(dataPoints);
+  }, [selectedLocation]);
+
+  const processData = () => {
+    if (!data.length) return [];
+
+    // Group villages by distance rings
+    const rings = data.reduce((acc: any, point) => {
+      const ring = Math.ceil(point.distance);
+      if (!acc[ring]) {
+        acc[ring] = {
+          name: `Ring ${ring}`,
+          correct: 0,
+          incorrect: 0,
+          total: 0,
+          villages: []
+        };
       }
-    });
-    
-    // Calculate average signal strength for each cell
-    return gridData.map(cell => ({
-      ...cell,
-      value: cell.count > 0 ? cell.value / cell.count : 0
+      acc[ring].total++;
+      if (point.isCorrect) {
+        acc[ring].correct++;
+      } else {
+        acc[ring].incorrect++;
+      }
+      acc[ring].villages.push(point.villageName);
+      return acc;
+    }, {});
+
+    return Object.values(rings).map((ring: any) => ({
+      name: `${ring.name} (${ring.villages.length} villages)`,
+      correct: ring.correct,
+      incorrect: ring.incorrect,
+      total: ring.total,
+      villages: ring.villages.join(', ')
     }));
   };
 
-  const gridData = createGridData();
+  const chartData = processData();
 
   return (
-    <Card className="shadow-md col-span-3">
+    <Card className="shadow-md">
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <div>
             <CardTitle>Coverage Prediction Map</CardTitle>
             <CardDescription>
-              Grid-based visualization of 5G coverage prediction
+              {selectedLocation 
+                ? `Showing coverage predictions for villages within ${Math.max(...data.map(d => d.distance))}km of ${selectedLocation.locationName}`
+                : 'Select a location to view coverage predictions'}
             </CardDescription>
           </div>
           <Select value={selectedAlgorithm} onValueChange={setSelectedAlgorithm}>
@@ -78,71 +108,42 @@ const CoverageMap = () => {
               <SelectValue placeholder="Select algorithm" />
             </SelectTrigger>
             <SelectContent>
-              {algorithms.map(algo => (
-                <SelectItem key={algo.id} value={algo.id}>{algo.name}</SelectItem>
-              ))}
+              <SelectItem value="xgboost">XGBoost</SelectItem>
+              <SelectItem value="randomforest">Random Forest</SelectItem>
+              <SelectItem value="neuralnet">Neural Network</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-96">
+        <div className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
-            <div className="relative w-full h-full">
-              <svg width="100%" height="100%">
-                {gridData.map((cell, index) => {
-                  const cellWidth = 100 / 20; // 20 is gridSize
-                  const cellHeight = 100 / 20;
-                  const x = cell.x * cellWidth;
-                  const y = cell.y * cellHeight;
-                  const isCorrect = cell.actualCoverage === cell.predictedCoverage;
-                  const hasCoverage = cell.actualCoverage;
-                  
-                  return (
-                    <g key={index}>
-                      <rect
-                        x={`${x}%`}
-                        y={`${y}%`}
-                        width={`${cellWidth}%`}
-                        height={`${cellHeight}%`}
-                        fill={hasCoverage ? 
-                          (isCorrect ? 'rgba(76, 81, 191, 0.7)' : 'rgba(229, 62, 62, 0.7)') :
-                          (isCorrect ? 'rgba(72, 187, 120, 0.7)' : 'rgba(245, 158, 11, 0.7)')
-                        }
-                        stroke="#fff"
-                        strokeWidth={1}
-                        className="cursor-pointer hover:opacity-80 transition-opacity"
-                        data-tooltip-content={JSON.stringify({
-                          actualCoverage: cell.actualCoverage,
-                          predictedCoverage: cell.predictedCoverage,
-                          value: cell.value,
-                          count: cell.count
-                        })}
-                      />
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip 
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    return (
+                      <div className="bg-background border rounded-lg p-3 shadow-lg">
+                        <p className="font-semibold">{data.name}</p>
+                        <p className="text-sm text-muted-foreground">Villages: {data.villages}</p>
+                        <p className="text-sm">Correct Predictions: {data.correct}</p>
+                        <p className="text-sm">Incorrect Predictions: {data.incorrect}</p>
+                        <p className="text-sm">Accuracy: {((data.correct / data.total) * 100).toFixed(1)}%</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Legend />
+              <Bar dataKey="correct" name="Correct Predictions" fill="#22c55e" />
+              <Bar dataKey="incorrect" name="Incorrect Predictions" fill="#ef4444" />
+            </BarChart>
           </ResponsiveContainer>
-        </div>
-        <div className="mt-4 flex justify-center space-x-4">
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-[#4C51BF] mr-2"></div>
-            <span>Correct Coverage Prediction</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-[#E53E3E] mr-2"></div>
-            <span>Incorrect Coverage Prediction</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-[#48BB78] mr-2"></div>
-            <span>Correct No Coverage</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-[#F59E0B] mr-2"></div>
-            <span>Incorrect No Coverage</span>
-          </div>
         </div>
       </CardContent>
     </Card>

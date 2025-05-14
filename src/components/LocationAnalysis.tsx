@@ -40,7 +40,11 @@ const frequencyRanges: FrequencyRange[] = [
   }
 ];
 
-const LocationAnalysis = () => {
+interface LocationAnalysisProps {
+  onLocationUpdate: (location: LocationData | null) => void;
+}
+
+const LocationAnalysis = ({ onLocationUpdate }: LocationAnalysisProps) => {
   const [location, setLocation] = useState<LocationData | null>(null);
   const [loading, setLoading] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
@@ -79,6 +83,7 @@ const LocationAnalysis = () => {
         };
         
         setLocation(locationData);
+        onLocationUpdate(locationData);
         
         // Select the most appropriate frequency range
         const bestRange = frequencyRanges.reduce((best, current) => 
@@ -87,93 +92,72 @@ const LocationAnalysis = () => {
         setSelectedFrequencyRange(bestRange);
       } else {
         setError('Location not found. Please try a different search term.');
+        onLocationUpdate(null);
       }
     } catch (error) {
       console.error('Error searching location:', error);
       setError('Error searching location. Please try again.');
+      onLocationUpdate(null);
     } finally {
       setLoading(false);
     }
   };
 
   const getLocation = () => {
-    setLoading(true);
+    setGeoLoading(true);
     setError(null);
 
     if (!navigator.geolocation) {
-      setError('Geolocation is not supported by your browser. Please try a different browser.');
-      setLoading(false);
+      setError('Geolocation is not supported by your browser.');
+      setGeoLoading(false);
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-        
         try {
+          const { latitude, longitude } = position.coords;
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
           );
           const data = await response.json();
-          
+
           const locationData = {
             latitude,
             longitude,
-            accuracy,
-            locationName: data.display_name.split(',')[0], // Get only the first part (place name)
-            locationDetails: null
+            accuracy: position.coords.accuracy,
+            locationName: data.display_name.split(',')[0],
+            locationDetails: data
           };
-          
+
           setLocation(locationData);
-          
+          onLocationUpdate(locationData);
+
+          // Select the most appropriate frequency range
           const bestRange = frequencyRanges.reduce((best, current) => 
             current.accuracy > best.accuracy ? current : best
           );
           setSelectedFrequencyRange(bestRange);
-        } catch (err) {
-          console.error('Error processing location:', err);
-          setError('Location detected but unable to fetch location name. Please try again.');
+        } catch (error) {
+          console.error('Error getting location details:', error);
+          setError('Error getting location details. Please try again.');
+          onLocationUpdate(null);
+        } finally {
+          setGeoLoading(false);
         }
-        
-        setLoading(false);
       },
       (error) => {
-        console.error('Geolocation error:', error);
-        let errorMessage = 'Unable to retrieve your location. ';
-        
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMessage += 'Please allow location access in your browser settings.';
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorMessage += 'Location information is unavailable.';
-            break;
-          case error.TIMEOUT:
-            errorMessage += 'Location request timed out. Please try again.';
-            break;
-          default:
-            errorMessage += 'An unknown error occurred.';
-        }
-        
-        setError(errorMessage);
-        setLoading(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
+        console.error('Error getting location:', error);
+        setError('Error getting your location. Please try again or search manually.');
+        onLocationUpdate(null);
+        setGeoLoading(false);
       }
     );
   };
 
   const getPredictionAccuracy = () => {
-    if (!location || !selectedFrequencyRange) return 0;
-    
-    // Calculate accuracy based on location and frequency range
-    const baseAccuracy = selectedFrequencyRange.accuracy;
-    const locationAccuracy = 1 - (location.accuracy / 1000); // Normalize GPS accuracy
-    
-    return (baseAccuracy * 0.7 + locationAccuracy * 0.3) * 100;
+    if (!selectedFrequencyRange) return 0;
+    return selectedFrequencyRange.accuracy * 100;
   };
 
   return (
@@ -259,27 +243,6 @@ const LocationAnalysis = () => {
                     </span>
                   </div>
                   <Progress value={getPredictionAccuracy()} className="h-2" />
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Target className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <h3 className="font-medium">Location Accuracy</h3>
-                    <div className="text-sm text-muted-foreground">
-                      <p>GPS Accuracy: ±{location.accuracy.toFixed(0)} meters</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Building className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <h3 className="font-medium">Environmental Factors</h3>
-                    <div className="text-sm text-muted-foreground">
-                      <p>Building Density: {Math.random().toFixed(2)}</p>
-                      <p>Terrain Type: Urban</p>
-                    </div>
-                  </div>
                 </div>
               </div>
             )}

@@ -3,8 +3,14 @@ export interface Algorithm {
   name: string;
   description: string;
   accuracy: number;
+  precision: number;
+  recall: number;
+  f1Score: number;
+  color: string;
   trainingTime: number;
-  parameters: Record<string, any>;
+  parameters: {
+    [key: string]: string | number | boolean;
+  };
 }
 
 export interface Feature {
@@ -55,9 +61,11 @@ export interface LocationDetails {
 export interface LocationData {
   latitude: number;
   longitude: number;
-  accuracy: number;
   locationName: string;
-  locationDetails: LocationDetails | null;
+  locationType: 'urban' | 'rural' | 'suburban';
+  frequencyRange: 'low' | 'medium' | 'high';
+  accuracy: number;
+  timestamp: string;
 }
 
 export interface FrequencyRange {
@@ -68,4 +76,22 @@ export interface FrequencyRange {
   description: string;
   range: string;
   speed: string;
+}
+
+export interface PredictionResult {
+  location: LocationData;
+  predictedCoverage: boolean;
+  confidence: number;
+  algorithm: string;
+  timestamp: string;
+}
+
+export interface AlgorithmMetrics {
+  name: string;
+  accuracy: number;
+  precision: number;
+  recall: number;
+  f1Score: number;
+  latency: number;
+  timestamp: string;
 }
